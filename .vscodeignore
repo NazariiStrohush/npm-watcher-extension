@@ -1,0 +1,10 @@
+# VS Code extension ignore file
+.vscode/**
+.vscode-test/**
+src/**/*.ts
+tsconfig.json
+.gitignore
+.git/**
+node_modules/**
+*.vsix
+.DS_Store

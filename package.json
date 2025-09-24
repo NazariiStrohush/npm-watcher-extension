@@ -1,0 +1,75 @@
+{
+  "name": "vscode-package-versions-snapshot",
+  "displayName": "Package Versions: Snapshot & Install Prompt",
+  "publisher": "your-name-here",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.84.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:packageVersions.snapshot",
+    "onCommand:packageVersions.reset",
+    "onCommand:packageVersions.showChanges",
+    "workspaceContains:**/package.json"
+  ],
+  "contributes": {
+    "commands": [
+      { "command": "packageVersions.snapshot", "title": "Package Versions: Take Snapshot" },
+      { "command": "packageVersions.reset", "title": "Package Versions: Reset Baseline" },
+      { "command": "packageVersions.showChanges", "title": "Package Versions: Show Changes" },
+      { "command": "packageVersions.updateAll", "title": "Package Versions: Update All Packages" },
+      { "command": "packageVersions.updateChanged", "title": "Package Versions: Update Changed Packages" }
+    ],
+    "configuration": {
+      "title": "Package Versions",
+      "properties": {
+        "packageVersions.packageManager": {
+          "type": "string",
+          "enum": ["auto", "npm", "pnpm", "yarn", "bun"],
+          "default": "auto",
+          "description": "Preferred package manager. 'auto' chooses based on lockfiles."
+        },
+        "packageVersions.suggestOnFields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "dependencies",
+            "devDependencies",
+            "peerDependencies",
+            "optionalDependencies",
+            "bundledDependencies"
+          ],
+          "description": "Dependency fields to watch for version changes."
+        },
+        "packageVersions.alwaysSuggest": {
+          "type": "boolean",
+          "default": true,
+          "description": "Suggest install whenever any version change is detected in watched fields."
+        },
+        "packageVersions.debounceMs": {
+          "type": "number",
+          "default": 250,
+          "description": "Debounce time for the watcher (ms)."
+        },
+        "packageVersions.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show status bar notification when packages have changes."
+        }
+      }
+    }
+  },
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "@types/vscode": "^1.84.0",
+    "typescript": "^5.5.0"
+  }
+}
