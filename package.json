@@ -67,7 +67,7 @@
     "build": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "package": "npm run build && vsce package",
-    "package:install": "npm run package && code --install-extension vscode-package-versions-snapshot-*.vsix"
+    "package:install": "npm run package && echo '✅ Package created! Install manually: Extensions → Install from VSIX → Select the .vsix file'"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",
