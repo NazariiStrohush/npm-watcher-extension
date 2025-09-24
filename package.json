@@ -1,7 +1,7 @@
 {
   "name": "vscode-package-versions-snapshot",
   "displayName": "Package Versions: Snapshot & Install Prompt",
-  "publisher": "your-name-here",
+  "publisher": "NazariiStrohush",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.84.0"
@@ -65,7 +65,9 @@
   "scripts": {
     "vscode:prepublish": "npm run build",
     "build": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "watch": "tsc -watch -p ./",
+    "package": "npm run build && vsce package",
+    "package:install": "npm run package && code --install-extension vscode-package-versions-snapshot-*.vsix"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",

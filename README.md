@@ -86,6 +86,32 @@ The extension automatically detects your package manager by looking for lockfile
 
 You can override this with the `packageVersions.packageManager` setting.
 
+## Development
+
+### Building and Packaging
+
+To create a new installable package:
+
+```bash
+# Quick build and package
+npm run package
+
+# Build, package, and auto-install
+npm run package:install
+
+# Or use the shell script
+./package.sh
+```
+
+This will generate a `.vsix` file that you can install in any VS Code/Cursor instance.
+
+### Available Scripts
+
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm run watch` - Watch for changes and recompile
+- `npm run package` - Build and create VSIX package
+- `npm run package:install` - Build, package, and auto-install in VS Code
+
 ## License
 
 MIT

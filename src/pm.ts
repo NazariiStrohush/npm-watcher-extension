@@ -4,16 +4,39 @@ import * as path from 'path';
 
 export type PM = 'npm' | 'pnpm' | 'yarn' | 'bun';
 
-export function detectPM(folder: string, cfg: vscode.WorkspaceConfiguration): PM {
+export function detectPM(folder: string, cfg: vscode.WorkspaceConfiguration, outputChannel?: vscode.OutputChannel): PM {
   const pref = cfg.get<string>('packageVersions.packageManager', 'auto');
-  if (pref && pref !== 'auto') return pref as PM;
+  const folderName = path.basename(folder);
+  
+  if (pref && pref !== 'auto') {
+    if (outputChannel) {
+      outputChannel.appendLine(`[${new Date().toISOString().substring(11, 23)}] 🔧 Using configured package manager: ${pref} (${folderName})`);
+    }
+    return pref as PM;
+  }
   
   const has = (f: string) => fs.existsSync(path.join(folder, f));
   
-  if (has('pnpm-lock.yaml')) return 'pnpm';
-  if (has('yarn.lock')) return 'yarn';
-  if (has('bun.lockb')) return 'bun';
-  return has('package-lock.json') ? 'npm' : 'npm';
+  let detected: PM;
+  if (has('pnpm-lock.yaml')) {
+    detected = 'pnpm';
+  } else if (has('yarn.lock')) {
+    detected = 'yarn';
+  } else if (has('bun.lockb')) {
+    detected = 'bun';
+  } else {
+    detected = has('package-lock.json') ? 'npm' : 'npm';
+  }
+  
+  if (outputChannel) {
+    const lockfile = has('pnpm-lock.yaml') ? 'pnpm-lock.yaml' : 
+                     has('yarn.lock') ? 'yarn.lock' : 
+                     has('bun.lockb') ? 'bun.lockb' :
+                     has('package-lock.json') ? 'package-lock.json' : 'none';
+    outputChannel.appendLine(`[${new Date().toISOString().substring(11, 23)}] 🔍 Detected package manager: ${detected} (${folderName}, lockfile: ${lockfile})`);
+  }
+  
+  return detected;
 }
 
 export function installCommand(pm: PM): string {
@@ -25,9 +48,20 @@ export function installCommand(pm: PM): string {
   }
 }
 
-export function runInstallInTerminal(pm: PM, cwd: string) {
+export function runInstallInTerminal(pm: PM, cwd: string, outputChannel?: vscode.OutputChannel) {
   const cmd = installCommand(pm);
-  const term = vscode.window.createTerminal({ name: `Install: ${path.basename(cwd)}`, cwd });
+  const folderName = path.basename(cwd);
+  const terminalName = `Install: ${folderName}`;
+  
+  if (outputChannel) {
+    outputChannel.appendLine(`[${new Date().toISOString().substring(11, 23)}] 🔧 Creating terminal "${terminalName}" with command: ${cmd}`);
+  }
+  
+  const term = vscode.window.createTerminal({ name: terminalName, cwd });
   term.show(true);
   term.sendText(cmd);
+  
+  if (outputChannel) {
+    outputChannel.appendLine(`[${new Date().toISOString().substring(11, 23)}] 🚀 Command sent to terminal: ${cmd}`);
+  }
 }
