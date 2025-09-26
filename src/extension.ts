@@ -74,7 +74,7 @@ export async function activate(ctx: vscode.ExtensionContext) {
       const changes = diffSnapshots(prev, next ?? undefined);
       if (changes.length === 0) return vscode.window.showInformationMessage('No version changes since baseline.');
       const items = formatChanges(changes).map(label => ({ label }));
-      vscode.window.showQuickPick(items, { title: 'Dependency version changes since baseline' });
+      await vscode.window.showQuickPick(items, { title: 'Dependency version changes since baseline' });
     }),
 
     vscode.commands.registerCommand('packageVersions.showUpdateOptions', async () => {
@@ -111,9 +111,22 @@ export async function activate(ctx: vscode.ExtensionContext) {
   );
 
   // Watcher
-  log('👀 Setting up file watchers for package.json files');
+  log('👀 Setting up file watchers for root-level package.json files');
   const watcher = vscode.workspace.createFileSystemWatcher('**/package.json');
-  const onChange = (uri: vscode.Uri) => handlePackageChange(ctx, uri, fields);
+  const onChange = (uri: vscode.Uri) => {
+    // Only handle root-level package.json files
+    const workspaceFolders = vscode.workspace.workspaceFolders || [];
+    const isRootPackageJson = workspaceFolders.some(folder => {
+      const rootPackageJsonPath = path.join(folder.uri.fsPath, 'package.json');
+      return uri.fsPath === rootPackageJsonPath;
+    });
+    
+    if (isRootPackageJson) {
+      handlePackageChange(ctx, uri, fields);
+    } else {
+      log(`🚫 Ignoring non-root package.json: ${path.relative(vscode.workspace.rootPath || '', uri.fsPath)}`);
+    }
+  };
   watcher.onDidChange(onChange, null, ctx.subscriptions);
   watcher.onDidCreate(onChange, null, ctx.subscriptions);
   // also fire on save of active editor to catch immediate changes
@@ -245,10 +258,22 @@ async function showAllChanges(ctx: vscode.ExtensionContext, fields: string[]) {
     return vscode.window.showInformationMessage('No changes found.');
   }
   
-  const items = allChanges.flatMap(({ file, changes }) => [
-    { label: `📁 ${path.basename(path.dirname(file))}`, description: path.dirname(file), kind: vscode.QuickPickItemKind.Separator },
-    ...formatChanges(changes).map(change => ({ label: `  ${change}`, description: '' }))
-  ]);
+  const items = allChanges.flatMap(({ file, changes }) => {
+    const folderName = path.basename(path.dirname(file));
+    const items = [
+      { label: `📁 ${folderName}`, description: path.dirname(file) }
+    ];
+    
+    // Add separator if supported (VS Code 1.60+)
+    if ('QuickPickItemKind' in vscode && 'Separator' in vscode.QuickPickItemKind) {
+      (items[0] as any).kind = vscode.QuickPickItemKind.Separator;
+    }
+    
+    return [
+      ...items,
+      ...formatChanges(changes).map(change => ({ label: `  ${change}`, description: '' }))
+    ];
+  });
   
   await vscode.window.showQuickPick(items, { title: 'All dependency changes across workspace' });
 }

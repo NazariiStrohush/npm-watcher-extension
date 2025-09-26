@@ -17,8 +17,28 @@ export async function readJson<T = any>(file: string): Promise<T | null> {
 }
 
 export async function globPackageJsons(): Promise<string[]> {
-  const uris = await vscode.workspace.findFiles('**/package.json', '**/{node_modules,dist,out,.next,.turbo}/**', 2000);
-  return uris.map(u => u.fsPath);
+  // First get workspace folders
+  const workspaceFolders = vscode.workspace.workspaceFolders || [];
+  const rootPackageJsons: string[] = [];
+  
+  // Check for package.json in each workspace root
+  for (const folder of workspaceFolders) {
+    const rootPackageJson = path.join(folder.uri.fsPath, 'package.json');
+    try {
+      await fs.readFile(rootPackageJson, 'utf8');
+      rootPackageJsons.push(rootPackageJson);
+    } catch {
+      // No package.json in this workspace root, skip
+    }
+  }
+  
+  // If no workspace folders or no root package.json found, fall back to finding any package.json
+  if (rootPackageJsons.length === 0) {
+    const uris = await vscode.workspace.findFiles('**/package.json', '**/{node_modules,dist,out,.next,.turbo}/**', 10);
+    return uris.map(u => u.fsPath);
+  }
+  
+  return rootPackageJsons;
 }
 
 function pickFields(pkg: PkgJson, fields: string[]): Record<string, DepMap> {

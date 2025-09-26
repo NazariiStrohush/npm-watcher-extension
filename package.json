@@ -4,7 +4,7 @@
   "publisher": "NazariiStrohush",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.84.0"
+    "vscode": "^1.50.0"
   },
   "categories": ["Other"],
   "activationEvents": [
@@ -71,7 +71,7 @@
   },
   "devDependencies": {
     "@types/node": "^18.19.0",
-    "@types/vscode": "^1.84.0",
+    "@types/vscode": "^1.50.0",
     "typescript": "^5.5.0"
   }
 }
